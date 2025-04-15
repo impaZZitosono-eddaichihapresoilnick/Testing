@@ -1,0 +1,185 @@
+{% extends "layout.html" %}
+
+{% block title %}Events - College Tournament System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('tournaments') }}">Tournaments</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Events</li>
+            </ol>
+        </nav>
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>
+                <i class="fas fa-calendar-alt me-2"></i>
+                Events
+            </h1>
+            {% if current_user.is_authenticated and current_user.is_admin %}
+            <a href="{{ url_for('create_event') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>
+                Create Event
+            </a>
+            {% endif %}
+        </div>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">All Events</h2>
+            </div>
+            <div class="card-body">
+                {% if events %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Tournament</th>
+                                <th>Type</th>
+                                <th>Format</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for event in events %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('event_detail', event_id=event.id) }}">{{ event.name }}</a>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('tournament_detail', tournament_id=event.tournament.id) }}">
+                                        {{ event.tournament.name }}
+                                    </a>
+                                </td>
+                                <td>{{ event.event_type }}</td>
+                                <td>{{ 'Team' if event.is_team_event else 'Individual' }}</td>
+                                <td>{{ event.event_date.strftime('%Y-%m-%d') if event.event_date else 'TBD' }}</td>
+                                <td>
+                                    {% if event.is_completed %}
+                                    <span class="badge bg-success">Completed</span>
+                                    {% else %}
+                                    <span class="badge bg-warning text-dark">Upcoming</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{{ url_for('event_detail', event_id=event.id) }}" class="btn btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if not event.is_completed %}
+                                        <a href="{{ url_for('register_for_event', event_id=event.id) }}" class="btn btn-success">
+                                            <i class="fas fa-user-plus"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if current_user.is_authenticated and current_user.is_admin and not event.is_completed %}
+                                        <a href="{{ url_for('record_event_result', event_id=event.id) }}" class="btn btn-warning">
+                                            <i class="fas fa-clipboard-list"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No events have been created yet.
+                    {% if current_user.is_authenticated and current_user.is_admin %}
+                    <a href="{{ url_for('create_event') }}" class="alert-link">Create an event</a>!
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h3 class="mb-0">Event Information</h3>
+            </div>
+            <div class="card-body">
+                <h5>Event Types:</h5>
+                <ul>
+                    <li><strong>Sports:</strong> Physical competitions like basketball, running, etc.</li>
+                    <li><strong>Academic:</strong> Knowledge-based competitions like quizzes, debates, etc.</li>
+                    <li><strong>Creative:</strong> Artistic competitions like writing, art, music, etc.</li>
+                    <li><strong>Technical:</strong> Skills-based competitions like coding, robotics, etc.</li>
+                    <li><strong>Gaming:</strong> Video game or board game competitions.</li>
+                </ul>
+                
+                <h5>Event Formats:</h5>
+                <ul>
+                    <li><strong>Individual:</strong> Participants compete on their own.</li>
+                    <li><strong>Team:</strong> Teams of 5 members compete together.</li>
+                </ul>
+            </div>
+        </div>
+
+        {% if current_user.is_authenticated %}
+        <div class="card mt-4">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">Participation</h3>
+            </div>
+            <div class="card-body">
+                <p>Ready to participate in an event? Follow these steps:</p>
+                <ol>
+                    <li>Choose an event from the list</li>
+                    <li>Click the <i class="fas fa-user-plus"></i> icon</li>
+                    <li>Register yourself or your team</li>
+                    <li>Prepare for the event!</li>
+                </ol>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Note:</strong> You must be registered as a participant or team member before you can register for events.
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('register_participant') }}" class="btn btn-outline-success">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Register as Participant
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if current_user.is_authenticated and current_user.is_admin %}
+        <div class="card mt-4">
+            <div class="card-header bg-dark text-white">
+                <h3 class="mb-0">Admin Actions</h3>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a href="{{ url_for('create_event') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-plus me-2"></i>
+                        Create New Event
+                    </a>
+                    {% for event in events %}
+                        {% if not event.is_completed %}
+                        <a href="{{ url_for('record_event_result', event_id=event.id) }}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-clipboard-list me-2"></i>
+                            Record Results for {{ event.name }}
+                        </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

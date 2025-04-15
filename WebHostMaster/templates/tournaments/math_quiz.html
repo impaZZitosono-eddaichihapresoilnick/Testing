@@ -1,0 +1,184 @@
+{% extends "layout.html" %}
+
+{% block title %}Math Quiz - College Tournament System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="mb-0">
+                <i class="fas fa-calculator me-2"></i>
+                Math Quiz Tournaments
+            </h1>
+            {% if current_user.is_authenticated %}
+            <a href="#new-quiz" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>New Quiz
+            </a>
+            {% endif %}
+        </div>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            The Math Quiz Tournament module is coming soon. Stay tuned for updates!
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h2 class="mb-0">Math Quiz Tournament Rules</h2>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>Quiz Format</h4>
+                        <ul>
+                            <li>Each round consists of 10 questions</li>
+                            <li>Time limit of 60 seconds per question</li>
+                            <li>Each match consists of 3 rounds</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h4>Scoring System</h4>
+                        <ul>
+                            <li><strong>Correct Answer</strong>: 10 points</li>
+                            <li><strong>Wrong Answer</strong>: 0 points</li>
+                            <li>Highest total score across all rounds wins</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Math Quiz Categories</h3>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <i class="fas fa-square-root-alt fa-3x mb-3 text-primary"></i>
+                                <h4>Algebra</h4>
+                                <p>Equations, functions, polynomials, and algebraic expressions.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <i class="fas fa-circle fa-3x mb-3 text-success"></i>
+                                <h4>Geometry</h4>
+                                <p>Shapes, angles, areas, volumes, and geometric proofs.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <i class="fas fa-chart-line fa-3x mb-3 text-info"></i>
+                                <h4>Calculus</h4>
+                                <p>Limits, derivatives, integrals, and applications.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row text-center">
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <i class="fas fa-percent fa-3x mb-3 text-warning"></i>
+                                <h4>Statistics</h4>
+                                <p>Probability, data analysis, distributions, and hypothesis testing.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <i class="fas fa-puzzle-piece fa-3x mb-3 text-danger"></i>
+                                <h4>Logic</h4>
+                                <p>Logical reasoning, proofs, paradoxes, and problem-solving.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <i class="fas fa-brain fa-3x mb-3 text-secondary"></i>
+                                <h4>Mixed</h4>
+                                <p>A mix of questions from various mathematical disciplines.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h3 class="mb-0">Coming Soon</h3>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <div class="list-group-item">
+                        <i class="fas fa-question-circle me-2"></i>
+                        Dynamic Question Generation
+                    </div>
+                    <div class="list-group-item">
+                        <i class="fas fa-stopwatch me-2"></i>
+                        Timed Quiz Sessions
+                    </div>
+                    <div class="list-group-item">
+                        <i class="fas fa-users me-2"></i>
+                        Head-to-Head Competitions
+                    </div>
+                    <div class="list-group-item">
+                        <i class="fas fa-graduation-cap me-2"></i>
+                        Difficulty Settings
+                    </div>
+                    <div class="list-group-item">
+                        <i class="fas fa-award me-2"></i>
+                        Achievement System
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <button class="btn btn-outline-primary" disabled>
+                    <i class="fas fa-bell me-2"></i>
+                    Notify Me When Available
+                </button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h3 class="mb-0">Math Quiz Benefits</h3>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">Improves critical thinking skills</li>
+                    <li class="list-group-item">Enhances problem-solving abilities</li>
+                    <li class="list-group-item">Builds teamwork in team quizzes</li>
+                    <li class="list-group-item">Prepares for math competitions</li>
+                    <li class="list-group-item">Makes learning math fun and engaging</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

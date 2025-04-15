@@ -1,0 +1,191 @@
+{% extends "layout.html" %}
+
+{% block title %}Overall Rankings - College Tournament System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="mb-0">
+                <i class="fas fa-medal me-2"></i>
+                Tournament Rankings
+            </h1>
+        </div>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">Overall Player Rankings</h2>
+            </div>
+            <div class="card-body">
+                {% if rankings %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Player</th>
+                                <th>Total Score</th>
+                                <th>Tournaments</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rank in rankings %}
+                            <tr class="{% if rank.rank == 1 %}rank-1{% elif rank.rank == 2 %}rank-2{% elif rank.rank == 3 %}rank-3{% endif %}">
+                                <td>
+                                    {% if rank.rank == 1 %}
+                                    <i class="fas fa-trophy text-warning"></i>
+                                    {% elif rank.rank == 2 %}
+                                    <i class="fas fa-trophy text-secondary"></i>
+                                    {% elif rank.rank == 3 %}
+                                    <i class="fas fa-trophy" style="color: #cd7f32;"></i>
+                                    {% else %}
+                                    {{ rank.rank }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ rank.player_name }}</td>
+                                <td>{{ rank.total_score }}</td>
+                                <td>{{ rank.tournaments_played }}</td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#playerModal{{ rank.player_id }}">
+                                        <i class="fas fa-info-circle"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No ranking data available yet. Complete some tournaments to see rankings.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">Tournament Types</h3>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a href="{{ url_for('individual_tournaments') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-user me-2"></i>
+                            Individual Tournaments
+                        </div>
+                        <span class="badge bg-primary rounded-pill">
+                            {% set ind_count = 0 %}
+                            {% for rank in rankings %}
+                                {% for tournament in rank.tournaments %}
+                                    {% if tournament.name.startswith('Individual') %}
+                                        {% set ind_count = ind_count + 1 %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                            {{ ind_count }}
+                        </span>
+                    </a>
+                    <a href="{{ url_for('team_tournaments') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-users me-2"></i>
+                            Team Tournaments
+                        </div>
+                        <span class="badge bg-primary rounded-pill">
+                            {% set team_count = 0 %}
+                            {% for rank in rankings %}
+                                {% for tournament in rank.tournaments %}
+                                    {% if tournament.name.startswith('Team') %}
+                                        {% set team_count = team_count + 1 %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                            {{ team_count }}
+                        </span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h3 class="mb-0">Rankings Information</h3>
+            </div>
+            <div class="card-body">
+                <p>Rankings are calculated based on the total scores accumulated across all tournaments.</p>
+                <p>Each tournament type has its own scoring system:</p>
+                <ul>
+                    <li><strong>Individual Tournaments</strong>:
+                        <ul>
+                            <li><strong>Math Quiz</strong>: 1 point per correct answer, tiebreaker based on time</li>
+                            <li><strong>100m Sprint</strong>: Points based on finishing position</li>
+                        </ul>
+                    </li>
+                    <li><strong>Team Tournaments</strong>:
+                        <ul>
+                            <li><strong>Football</strong>: Win (3 pts), Draw (1 pt), Loss (0 pts)</li>
+                            <li><strong>Dodgeball</strong>: Elimination format, points based on final position</li>
+                            <li><strong>Debate</strong>: Scored on argumentation, rebuttal, presentation, and teamwork</li>
+                        </ul>
+                    </li>
+                </ul>
+                <p class="mb-0"><small>Rankings are updated automatically after each event result is recorded.</small></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Player Details Modals -->
+{% if rankings %}
+    {% for rank in rankings %}
+    <div class="modal fade" id="playerModal{{ rank.player_id }}" tabindex="-1" aria-labelledby="playerModalLabel{{ rank.player_id }}" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="playerModalLabel{{ rank.player_id }}">{{ rank.player_name }}'s Tournaments</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Tournament</th>
+                                    <th>Score</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tournament in rank.tournaments %}
+                                <tr>
+                                    <td>{{ tournament.name }}</td>
+                                    <td>{{ tournament.score }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-primary">
+                                    <th>Total</th>
+                                    <th>{{ rank.total_score }}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% endif %}
+{% endblock %}

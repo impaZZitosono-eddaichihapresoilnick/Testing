@@ -1,0 +1,200 @@
+{% extends "layout.html" %}
+
+{% block title %}College Tournaments - Tournament Management System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item active" aria-current="page">College Tournaments</li>
+            </ol>
+        </nav>
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>
+                <i class="fas fa-university me-2"></i>
+                College Tournaments
+            </h1>
+            {% if current_user.is_authenticated and current_user.is_admin %}
+            <div class="btn-group">
+                <a href="{{ url_for('create_individual_tournament') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>
+                    Create Individual Tournament
+                </a>
+                <a href="{{ url_for('create_team_tournament') }}" class="btn btn-success">
+                    <i class="fas fa-plus me-1"></i>
+                    Create Team Tournament
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">Active Tournaments</h2>
+            </div>
+            <div class="card-body">
+                {% if active_tournaments %}
+                <div class="row">
+                    {% for tournament in active_tournaments %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header bg-success text-white">
+                                <h3 class="card-title mb-0">{{ tournament.name }}</h3>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">{{ tournament.description }}</p>
+                                <dl class="row mb-0">
+                                    <dt class="col-sm-6">Start Date:</dt>
+                                    <dd class="col-sm-6">{{ tournament.start_date.strftime('%Y-%m-%d') }}</dd>
+                                    
+                                    <dt class="col-sm-6">Event Count:</dt>
+                                    <dd class="col-sm-6">{{ tournament.events|length }}</dd>
+                                    
+                                    <dt class="col-sm-6">Teams:</dt>
+                                    <dd class="col-sm-6">{{ tournament.max_teams }}</dd>
+                                    
+                                    <dt class="col-sm-6">Individuals:</dt>
+                                    <dd class="col-sm-6">{{ tournament.max_individuals }}</dd>
+                                </dl>
+                            </div>
+                            <div class="card-footer">
+                                <a href="{{ url_for('tournament_detail', tournament_id=tournament.id) }}" class="btn btn-primary w-100">
+                                    <i class="fas fa-eye me-1"></i>
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No active tournaments at the moment.
+                    {% if current_user.is_authenticated and current_user.is_admin %}
+                    <a href="{{ url_for('create_individual_tournament') }}" class="alert-link">Create a tournament</a>!
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header bg-secondary text-white">
+                <h2 class="mb-0">Past Tournaments</h2>
+            </div>
+            <div class="card-body">
+                {% if past_tournaments %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tournament</th>
+                                <th>Dates</th>
+                                <th>Events</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tournament in past_tournaments %}
+                            <tr>
+                                <td>{{ tournament.name }}</td>
+                                <td>{{ tournament.start_date.strftime('%Y-%m-%d') }} - {{ tournament.end_date.strftime('%Y-%m-%d') if tournament.end_date else 'Open' }}</td>
+                                <td>{{ tournament.events|length }}</td>
+                                <td>
+                                    <a href="{{ url_for('tournament_detail', tournament_id=tournament.id) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-secondary text-center">
+                    <i class="fas fa-history me-2"></i>
+                    No past tournaments available.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mb-4">
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h3 class="mb-0">Quick Links</h3>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a href="{{ url_for('events') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-calendar-alt me-2"></i> Browse Events</span>
+                        <span class="badge bg-primary rounded-pill">{{ events_count }}</span>
+                    </a>
+                    <a href="{{ url_for('teams') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-users me-2"></i> View Teams</span>
+                        <span class="badge bg-primary rounded-pill">{{ teams_count }}</span>
+                    </a>
+                    <a href="{{ url_for('participants') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-user me-2"></i> Individual Participants</span>
+                        <span class="badge bg-primary rounded-pill">{{ participants_count }}</span>
+                    </a>
+                    <a href="{{ url_for('tournament_rankings') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-medal me-2"></i> View Rankings
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {% if current_user.is_authenticated %}
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">Participation</h3>
+            </div>
+            <div class="card-body">
+                <p>Ready to participate? Choose your path:</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('create_team') }}" class="btn btn-outline-success">
+                        <i class="fas fa-users-cog me-2"></i>
+                        Create a Team
+                    </a>
+                    <a href="{{ url_for('register_participant') }}" class="btn btn-outline-success">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Register as Individual
+                    </a>
+                    <a href="{{ url_for('events') }}" class="btn btn-outline-success">
+                        <i class="fas fa-calendar-check me-2"></i>
+                        Register for Events
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h3 class="mb-0">Tournament Rules</h3>
+            </div>
+            <div class="card-body">
+                <h5>College Tournament Format:</h5>
+                <ul>
+                    <li>Each tournament has up to 5 events</li>
+                    <li>Teams (max {{ max_teams }}) consist of 5 members each</li>
+                    <li>Individual spots (max {{ max_individuals }}) are also available</li>
+                    <li>Events can be team-based or individual</li>
+                    <li>Points are awarded based on ranking in each event</li>
+                    <li>Overall standings track both team and individual performance</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

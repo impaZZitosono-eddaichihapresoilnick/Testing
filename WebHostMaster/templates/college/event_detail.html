@@ -1,0 +1,249 @@
+{% extends "layout.html" %}
+
+{% block title %}Event: {{ event.name }} - College Tournament System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('tournaments') }}">Tournaments</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('events') }}">Events</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ event.name }}</li>
+            </ol>
+        </nav>
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>
+                <i class="fas fa-calendar-day me-2"></i>
+                {{ event.name }}
+            </h1>
+            <div class="btn-group" role="group">
+                {% if not event.is_completed %}
+                <a href="{{ url_for('register_for_event', event_id=event.id) }}" class="btn btn-success">
+                    <i class="fas fa-user-plus me-1"></i>
+                    Register
+                </a>
+                {% endif %}
+                
+                {% if current_user.is_authenticated and current_user.is_admin %}
+                    {% if not event.is_completed %}
+                    <a href="{{ url_for('record_event_result', event_id=event.id) }}" class="btn btn-warning">
+                        <i class="fas fa-clipboard-list me-1"></i>
+                        Record Results
+                    </a>
+                    {% endif %}
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteEventModal">
+                        <i class="fas fa-trash-alt me-1"></i>
+                        Delete Event
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="alert alert-{{ 'success' if event.is_completed else 'info' }}">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Event Status:</strong> {{ 'Completed' if event.is_completed else 'Upcoming' }}
+            | <strong>Format:</strong> {{ 'Team' if event.is_team_event else 'Individual' }} Event
+            | <strong>Type:</strong> {{ event.event_type }}
+            | <strong>Date:</strong> {{ event.event_date.strftime('%Y-%m-%d') if event.event_date else 'TBD' }}
+        </div>
+        
+        <p class="lead">{{ event.description }}</p>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">Results & Rankings</h2>
+            </div>
+            <div class="card-body">
+                {% if results %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>{{ 'Team' if event.is_team_event else 'Participant' }}</th>
+                                <th>Score</th>
+                                <th>Points Awarded</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in results %}
+                            <tr>
+                                <td>
+                                    {% if result.rank == 1 %}
+                                    <span class="badge bg-warning text-dark"><i class="fas fa-trophy me-1"></i>1st</span>
+                                    {% elif result.rank == 2 %}
+                                    <span class="badge bg-secondary"><i class="fas fa-trophy me-1"></i>2nd</span>
+                                    {% elif result.rank == 3 %}
+                                    <span class="badge" style="background-color: #cd7f32;"><i class="fas fa-trophy me-1"></i>3rd</span>
+                                    {% else %}
+                                    <span class="badge bg-light text-dark">{{ result.rank }}th</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if event.is_team_event %}
+                                    <a href="{{ url_for('team_detail', team_id=result.team.id) }}">{{ result.team.name }}</a>
+                                    {% else %}
+                                    <a href="{{ url_for('participant_detail', participant_id=result.participant.id) }}">{{ result.participant.name }}</a>
+                                    {% endif %}
+                                </td>
+                                <td>{{ result.score }}</td>
+                                <td>{{ result.points_awarded }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% elif event.is_completed %}
+                <div class="alert alert-warning text-center">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Event is marked as completed, but no results have been recorded.
+                </div>
+                {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Results will be available after the event is completed.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h3 class="mb-0">Event Details</h3>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Tournament
+                        <a href="{{ url_for('tournament_detail', tournament_id=event.tournament.id) }}" class="badge bg-primary text-decoration-none">
+                            {{ event.tournament.name }}
+                        </a>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Format
+                        <span class="badge bg-secondary">{{ 'Team' if event.is_team_event else 'Individual' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Type
+                        <span class="badge bg-info">{{ event.event_type }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Status
+                        <span class="badge bg-{{ 'success' if event.is_completed else 'warning text-dark' }}">
+                            {{ 'Completed' if event.is_completed else 'Upcoming' }}
+                        </span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Date
+                        <span class="badge bg-secondary">{{ event.event_date.strftime('%Y-%m-%d') if event.event_date else 'TBD' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Created
+                        <span class="badge bg-secondary">{{ event.created_at.strftime('%Y-%m-%d') }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        {% if event.scoring_system %}
+        <div class="card mt-4">
+            <div class="card-header bg-warning text-dark">
+                <h3 class="mb-0">Scoring System</h3>
+            </div>
+            <div class="card-body">
+                <p>{{ event.scoring_system }}</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="card mt-4">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">Participants</h3>
+            </div>
+            <div class="card-body">
+                {% if participants %}
+                <div class="list-group">
+                    {% if event.is_team_event %}
+                    {% set team_ids = [] %}
+                    {% for participant in participants %}
+                        {% if participant.team_id not in team_ids %}
+                            {% set _ = team_ids.append(participant.team_id) %}
+                            <a href="{{ url_for('team_detail', team_id=participant.team_id) }}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-users me-2"></i>
+                                {{ participant.team.name }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                    {% else %}
+                    {% for participant in participants %}
+                    <a href="{{ url_for('participant_detail', participant_id=participant.participant_id) }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-user me-2"></i>
+                        {{ participant.participant.name }}
+                    </a>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No participants have registered for this event yet.
+                    {% if not event.is_completed %}
+                    <a href="{{ url_for('register_for_event', event_id=event.id) }}" class="alert-link">Register now</a>!
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% if not event.is_completed %}
+            <div class="card-footer text-center">
+                <a href="{{ url_for('register_for_event', event_id=event.id) }}" class="btn btn-outline-success btn-sm">
+                    <i class="fas fa-user-plus me-1"></i>
+                    Register for Event
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Event Modal -->
+<div class="modal fade" id="deleteEventModal" tabindex="-1" aria-labelledby="deleteEventModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteEventModalLabel">Delete Event</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> This action cannot be undone!
+                </p>
+                <p>Are you sure you want to delete the event "{{ event.name }}"?</p>
+                <p>This will permanently delete:</p>
+                <ul>
+                    <li>All participant registrations ({{ participants|length }})</li>
+                    <li>All event results ({{ results|length }})</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('delete_event', event_id=event.id) }}" method="post">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-2"></i>
+                        Delete Event
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

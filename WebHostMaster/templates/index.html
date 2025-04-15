@@ -1,0 +1,161 @@
+{% extends "layout.html" %}
+
+{% block title %}Home - College Tournament System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="bg-dark p-5 rounded text-center">
+            <h1 class="display-4 fw-bold">College Tournament System</h1>
+            <p class="lead">Manage and track tournaments across multiple sports and activities.</p>
+            <hr class="my-4">
+            <p>Organize competitions, record scores, and view rankings for various tournament types.</p>
+            <div class="d-flex justify-content-center">
+                <a href="{{ url_for('tournaments') }}" class="btn btn-primary btn-lg mx-2">View Tournaments</a>
+                <a href="{{ url_for('rankings') }}" class="btn btn-secondary btn-lg mx-2">View Rankings</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col-12">
+        <h2 class="mb-4">Tournament Types</h2>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 tournament-card">
+            <div class="card-body text-center">
+                <div class="tournament-icon">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h3 class="card-title">Individual Tournaments</h3>
+                <p class="card-text">
+                    Compete in individual tournaments with up to 20 participants.
+                    Participate in various events and earn points based on your performance.
+                    Events include sports, academic, creative, and technical competitions.
+                </p>
+                <a href="{{ url_for('individual_tournaments') }}" class="btn btn-primary">View Individual Tournaments</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 tournament-card">
+            <div class="card-body text-center">
+                <div class="tournament-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3 class="card-title">Team Tournaments</h3>
+                <p class="card-text">
+                    Join team-based tournaments with up to 4 teams, each with 5 members.
+                    Compete in team events and earn points for your team. 
+                    Events include team sports, academic challenges, and creative competitions.
+                </p>
+                <a href="{{ url_for('team_tournaments') }}" class="btn btn-primary">View Team Tournaments</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Active Tournaments</h3>
+            </div>
+            <div class="card-body">
+                <ul class="nav nav-tabs" id="tournamentTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="individual-tab" data-bs-toggle="tab" data-bs-target="#individual" type="button" role="tab" aria-controls="individual" aria-selected="true">Individual</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="team-tab" data-bs-toggle="tab" data-bs-target="#team" type="button" role="tab" aria-controls="team" aria-selected="false">Team</button>
+                    </li>
+                </ul>
+                <div class="tab-content pt-3" id="tournamentTabsContent">
+                    <div class="tab-pane fade show active" id="individual" role="tabpanel" aria-labelledby="individual-tab">
+                        {% if individual_tournaments %}
+                        <div class="list-group">
+                            {% for tournament in individual_tournaments %}
+                            <a href="{{ url_for('tournament_detail', tournament_id=tournament.id) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ tournament.name }}</h5>
+                                    <small>Individual</small>
+                                </div>
+                                <small>Started: {{ tournament.start_date.strftime('%Y-%m-%d') }}</small>
+                            </a>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-center">No active individual tournaments found.</p>
+                        {% endif %}
+                    </div>
+                    <div class="tab-pane fade" id="team" role="tabpanel" aria-labelledby="team-tab">
+                        {% if team_tournaments %}
+                        <div class="list-group">
+                            {% for tournament in team_tournaments %}
+                            <a href="{{ url_for('tournament_detail', tournament_id=tournament.id) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ tournament.name }}</h5>
+                                    <small>Team</small>
+                                </div>
+                                <small>Started: {{ tournament.start_date.strftime('%Y-%m-%d') }}</small>
+                            </a>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-center">No active team tournaments found.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if current_user.is_authenticated and current_user.is_admin %}
+                <div class="text-center mt-3">
+                    <div class="btn-group">
+                        <a href="{{ url_for('create_individual_tournament') }}" class="btn btn-outline-primary">Create Individual Tournament</a>
+                        <a href="{{ url_for('create_team_tournament') }}" class="btn btn-outline-primary">Create Team Tournament</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">Recent Events</h3>
+            </div>
+            <div class="card-body">
+                {% if events %}
+                <div class="list-group">
+                    {% for event in events %}
+                    <a href="{{ url_for('event_detail', event_id=event.id) }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ event.name }}</h5>
+                            <small>{{ event.event_type }}</small>
+                        </div>
+                        <p class="mb-1">
+                            Tournament: <span class="fw-bold">{{ event.tournament.name }}</span>
+                            <br>
+                            {% if event.is_completed %}
+                            <span class="badge bg-success">Completed</span>
+                            {% else %}
+                            <span class="badge bg-warning">In Progress</span>
+                            {% endif %}
+                            <span class="badge {% if event.is_team_event %}bg-info{% else %}bg-primary{% endif %}">
+                                {% if event.is_team_event %}Team Event{% else %}Individual Event{% endif %}
+                            </span>
+                        </p>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-center">No recent events found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

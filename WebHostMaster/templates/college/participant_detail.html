@@ -1,0 +1,158 @@
+{% extends "layout.html" %}
+
+{% block title %}Participant: {{ participant.name }} - College Tournament System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('tournaments') }}">College Tournaments</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('participants') }}">Participants</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ participant.name }}</li>
+            </ol>
+        </nav>
+        <h1>
+            <i class="fas fa-user me-2"></i>
+            {{ participant.name }}
+        </h1>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">Performance</h2>
+            </div>
+            <div class="card-body">
+                {% if event_results %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Rank</th>
+                                <th>Score</th>
+                                <th>Points</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in event_results %}
+                            <tr>
+                                <td>
+                                    <a href="{{ url_for('event_detail', event_id=result.event.id) }}">{{ result.event.name }}</a>
+                                </td>
+                                <td>
+                                    {% if result.rank == 1 %}
+                                    <span class="badge bg-warning text-dark"><i class="fas fa-trophy me-1"></i>1st</span>
+                                    {% elif result.rank == 2 %}
+                                    <span class="badge bg-secondary"><i class="fas fa-trophy me-1"></i>2nd</span>
+                                    {% elif result.rank == 3 %}
+                                    <span class="badge" style="background-color: #cd7f32;"><i class="fas fa-trophy me-1"></i>3rd</span>
+                                    {% else %}
+                                    <span class="badge bg-light text-dark">{{ result.rank }}th</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ result.score }}</td>
+                                <td>{{ result.points_awarded }}</td>
+                                <td>{{ result.recorded_at.strftime('%Y-%m-%d') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-primary">
+                                <th>Total</th>
+                                <th colspan="2">Events: {{ event_results|length }}</th>
+                                <th>{{ event_results|sum(attribute='points_awarded') }}</th>
+                                <th></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    This participant has not participated in any events yet.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">Upcoming Events</h3>
+            </div>
+            <div class="card-body">
+                <p>Find events where this participant can compete:</p>
+                <a href="{{ url_for('events') }}" class="btn btn-outline-success">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    Browse Events
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h3 class="mb-0">Participant Details</h3>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Name
+                        <span class="badge bg-primary">{{ participant.name }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Type
+                        <span class="badge bg-{{ 'success' if participant.is_individual else 'info' }}">
+                            {{ 'Individual' if participant.is_individual else 'Team Member' }}
+                        </span>
+                    </li>
+                    {% if not participant.is_individual and participant.team %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Team
+                        <a href="{{ url_for('team_detail', team_id=participant.team.id) }}" class="badge bg-secondary text-decoration-none">
+                            {{ participant.team.name }}
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Registered
+                        <span class="badge bg-secondary">{{ participant.created_at.strftime('%Y-%m-%d') }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Events Participated
+                        <span class="badge bg-info">{{ event_results|length }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Total Points
+                        <span class="badge bg-success">{{ event_results|sum(attribute='points_awarded') }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        {% if participant.is_individual %}
+        <div class="card mt-4">
+            <div class="card-header bg-dark text-white">
+                <h3 class="mb-0">Individual Rankings</h3>
+            </div>
+            <div class="card-body">
+                <p>View this participant's ranking in tournaments:</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('tournament_rankings') }}" class="btn btn-outline-dark">
+                        <i class="fas fa-medal me-2"></i>
+                        View Rankings
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,200 @@
+{% extends "layout.html" %}
+
+{% block title %}Table Tennis - College Tournament System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="mb-0">
+                <i class="fas fa-table-tennis-paddle-ball me-2"></i>
+                Table Tennis Tournaments
+            </h1>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('new_table_tennis_match') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>New Match
+            </a>
+            {% endif %}
+        </div>
+        <hr>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h2 class="mb-0">Table Tennis Rules</h2>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>Scoring Rules</h4>
+                        <ul>
+                            <li>Each set is won by the first player to reach {{ config.POINTS_TO_WIN_SET }} points</li>
+                            <li>A {{ config.MIN_POINT_DIFFERENCE }}-point lead is required to win a set</li>
+                            <li>Match can be configured as best of 3, 5, or 7 sets</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h4>Match Formats</h4>
+                        <ul>
+                            <li><strong>Best of 3</strong>: First player to win 2 sets</li>
+                            <li><strong>Best of 5</strong>: First player to win 3 sets</li>
+                            <li><strong>Best of 7</strong>: First player to win 4 sets</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h2 class="mb-0">Active Tournaments</h2>
+            </div>
+            <div class="card-body">
+                {% if tournaments %}
+                <div class="row">
+                    {% for tournament in tournaments %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100 tournament-card">
+                            <div class="card-header">
+                                <h4 class="mb-0">{{ tournament.name }}</h4>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">
+                                    {{ tournament.description[:100] + '...' if tournament.description and tournament.description|length > 100 else tournament.description or 'No description available.' }}
+                                </p>
+                                
+                                <p class="text-muted">
+                                    <i class="fas fa-calendar-alt me-1"></i> Started: {{ tournament.start_date.strftime('%Y-%m-%d') }}
+                                </p>
+                                
+                                {% set match_count = tournament.matches|length %}
+                                {% set player_count = tournament.scores|length %}
+                                
+                                <div class="d-flex justify-content-between">
+                                    <span class="badge bg-primary">{{ match_count }} Matches</span>
+                                    <span class="badge bg-info">{{ player_count }} Players</span>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <a href="{{ url_for('tournament_detail', tournament_id=tournament.id) }}" class="btn btn-primary w-100">
+                                    View Tournament
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <p class="mb-3">No active table tennis tournaments found.</p>
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('create_tournament') }}" class="btn btn-outline-primary">Create a Tournament</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Quick Actions</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-3">
+                    {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('new_table_tennis_match') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-plus me-2"></i>Create New Match
+                    </a>
+                    <a href="{{ url_for('create_tournament') }}" class="btn btn-outline-success">
+                        <i class="fas fa-trophy me-2"></i>Create Tournament
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login to Create Matches
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('rankings') }}" class="btn btn-outline-info">
+                        <i class="fas fa-list-ol me-2"></i>View Rankings
+                    </a>
+                    <a href="{{ url_for('history') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-history me-2"></i>View Match History
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h3 class="mb-0">Rules Summary</h3>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="accordionRules">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                Basic Rules
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>A player must allow the ball to bounce once on their side before hitting it</li>
+                                    <li>The server must throw the ball up at least 6 inches before serving</li>
+                                    <li>The ball must bounce on the server's side first then the opponent's side</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                Scoring System
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>A point is scored when the opponent fails to return the ball</li>
+                                    <li>Each set ends when a player reaches {{ config.POINTS_TO_WIN_SET }} points with a {{ config.MIN_POINT_DIFFERENCE }}-point lead</li>
+                                    <li>If the score is {{ config.POINTS_TO_WIN_SET-1 }}-{{ config.POINTS_TO_WIN_SET-1 }}, play continues until a {{ config.MIN_POINT_DIFFERENCE }}-point lead is achieved</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                Common Faults
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Failing to make a legal service</li>
+                                    <li>Allowing the ball to bounce twice on your side</li>
+                                    <li>Hitting the ball before it bounces on your side</li>
+                                    <li>Touching the table with your free hand</li>
+                                    <li>Moving the table during play</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/table_tennis.js') }}"></script>
+{% endblock %}

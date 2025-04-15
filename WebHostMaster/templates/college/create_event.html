@@ -1,0 +1,151 @@
+{% extends "layout.html" %}
+
+{% block title %}Create Event - College Tournament System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('tournaments') }}">Tournaments</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('events') }}">Events</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Create Event</li>
+            </ol>
+        </nav>
+        <h1>
+            <i class="fas fa-calendar-plus me-2"></i>
+            Create New Event
+        </h1>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">Event Details</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('create_event') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label") }}
+                        {{ form.name(class="form-control") }}
+                        {% for error in form.name.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">Enter a descriptive name for the event.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.tournament_id.label(class="form-label") }}
+                        {{ form.tournament_id(class="form-select") }}
+                        {% for error in form.tournament_id.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">Select the tournament this event belongs to.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control", rows=3) }}
+                        {% for error in form.description.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">Provide details about the event, rules, and requirements.</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.event_type.label(class="form-label") }}
+                            {{ form.event_type(class="form-select") }}
+                            {% for error in form.event_type.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                            <div class="form-text">Select the type of event.</div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Event Format</label>
+                            <div class="form-check">
+                                {{ form.is_team_event(class="form-check-input") }}
+                                {{ form.is_team_event.label(class="form-check-label") }}
+                                <div class="form-text">Check if this is a team event, uncheck for individual event.</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.event_date.label(class="form-label") }}
+                        {{ form.event_date(class="form-control", placeholder="YYYY-MM-DD") }}
+                        {% for error in form.event_date.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">Enter the date of the event (YYYY-MM-DD).</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.scoring_system.label(class="form-label") }}
+                        {{ form.scoring_system(class="form-control", rows=3) }}
+                        {% for error in form.scoring_system.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">{{ form.scoring_system.description }}</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h3 class="mb-0">Event Guidelines</h3>
+            </div>
+            <div class="card-body">
+                <h5>Event Types:</h5>
+                <ul>
+                    <li><strong>SPORTS:</strong> Physical competitions like basketball, running, etc.</li>
+                    <li><strong>ACADEMIC:</strong> Knowledge-based competitions like quizzes, debates, etc.</li>
+                    <li><strong>CREATIVE:</strong> Artistic competitions like writing, art, music, etc.</li>
+                    <li><strong>TECHNICAL:</strong> Skills-based competitions like coding, robotics, etc.</li>
+                    <li><strong>GAMING:</strong> Video game or board game competitions.</li>
+                </ul>
+                
+                <h5>Event Formats:</h5>
+                <ul>
+                    <li><strong>Individual Event:</strong> Participants compete on their own.</li>
+                    <li><strong>Team Event:</strong> Teams of 5 members compete together.</li>
+                </ul>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Important:</strong> Once created, the format (team/individual) of an event cannot be changed.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">After Creation</h3>
+            </div>
+            <div class="card-body">
+                <p>After creating an event, you'll be able to:</p>
+                <ul>
+                    <li>Register participants/teams for the event</li>
+                    <li>Record results and rankings</li>
+                    <li>View event details and participants</li>
+                    <li>Track points and update rankings</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

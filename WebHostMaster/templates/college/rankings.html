@@ -1,0 +1,203 @@
+{% extends "layout.html" %}
+
+{% block title %}College Tournament Rankings - College Tournament System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('tournaments') }}">Tournaments</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Rankings</li>
+            </ol>
+        </nav>
+        <h1>
+            <i class="fas fa-medal me-2"></i>
+            Tournament Rankings
+        </h1>
+        <hr>
+    </div>
+</div>
+
+<!-- Tournament Selection -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Select Tournament</h3>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('tournament_rankings') }}" class="row g-3">
+                    <div class="col-md-8">
+                        <select name="tournament_id" class="form-select" onchange="this.form.submit()">
+                            <option value="0" {% if not selected_tournament %}selected{% endif %}>All Tournaments (Overall Rankings)</option>
+                            {% for tournament in tournaments %}
+                            <option value="{{ tournament.id }}" {% if selected_tournament and selected_tournament.id == tournament.id %}selected{% endif %}>
+                                {{ tournament.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-filter me-2"></i>
+                            Apply Filter
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Team Rankings -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <h2 class="mb-0">Team Rankings</h2>
+            </div>
+            <div class="card-body">
+                {% if team_rankings %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Team</th>
+                                <th>Events</th>
+                                <th>Points</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rank, team in team_rankings %}
+                            <tr>
+                                <td>
+                                    {% if rank == 1 %}
+                                    <span class="badge bg-warning text-dark"><i class="fas fa-trophy me-1"></i>1st</span>
+                                    {% elif rank == 2 %}
+                                    <span class="badge bg-secondary"><i class="fas fa-trophy me-1"></i>2nd</span>
+                                    {% elif rank == 3 %}
+                                    <span class="badge" style="background-color: #cd7f32;"><i class="fas fa-trophy me-1"></i>3rd</span>
+                                    {% else %}
+                                    <span class="badge bg-light text-dark">{{ rank }}th</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('team_detail', team_id=team.id) }}">{{ team.name }}</a>
+                                </td>
+                                <td>{{ team.event_count }}</td>
+                                <td><strong>{{ team.total_points }}</strong></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No team rankings available for this tournament.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Individual Rankings -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h2 class="mb-0">Individual Rankings</h2>
+            </div>
+            <div class="card-body">
+                {% if individual_rankings %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Participant</th>
+                                <th>Events</th>
+                                <th>Points</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rank, participant in individual_rankings %}
+                            <tr>
+                                <td>
+                                    {% if rank == 1 %}
+                                    <span class="badge bg-warning text-dark"><i class="fas fa-trophy me-1"></i>1st</span>
+                                    {% elif rank == 2 %}
+                                    <span class="badge bg-secondary"><i class="fas fa-trophy me-1"></i>2nd</span>
+                                    {% elif rank == 3 %}
+                                    <span class="badge" style="background-color: #cd7f32;"><i class="fas fa-trophy me-1"></i>3rd</span>
+                                    {% else %}
+                                    <span class="badge bg-light text-dark">{{ rank }}th</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('participant_detail', participant_id=participant.id) }}">{{ participant.name }}</a>
+                                </td>
+                                <td>{{ participant.event_count }}</td>
+                                <td><strong>{{ participant.total_points }}</strong></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No individual rankings available for this tournament.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if selected_tournament %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h3 class="mb-0">Tournament Events</h3>
+            </div>
+            <div class="card-body">
+                {% if events %}
+                <div class="row">
+                    {% for event in events %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-header {{ 'bg-success text-white' if event.is_completed else 'bg-warning' }}">
+                                <h5 class="mb-0">{{ event.name }}</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-1"><strong>Type:</strong> {{ event.event_type }}</p>
+                                <p class="mb-1"><strong>Format:</strong> {{ 'Team' if event.is_team_event else 'Individual' }}</p>
+                                <p class="mb-1"><strong>Status:</strong> {{ 'Completed' if event.is_completed else 'Upcoming' }}</p>
+                                <p class="mb-0"><strong>Date:</strong> {{ event.event_date.strftime('%Y-%m-%d') if event.event_date else 'TBD' }}</p>
+                            </div>
+                            <div class="card-footer">
+                                <a href="{{ url_for('event_detail', event_id=event.id) }}" class="btn btn-outline-primary btn-sm w-100">
+                                    <i class="fas fa-eye me-1"></i>
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No events found for this tournament.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'layout.html' %}
+
+{% block title %}New Match{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Create New Table Tennis Match</h1>
+    <div class="card">
+        <div class="card-body">
+            <form method="post" action="{{ url_for('new_table_tennis_match') }}">
+                {{ form.hidden_tag() }}
+                <div class="mb-3">
+                    {{ form.tournament_id.label(class="form-label") }}
+                    {{ form.tournament_id(class="form-select") }}
+                    {% for error in form.tournament_id.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="mb-3">
+                    {{ form.player1_name.label(class="form-label") }}
+                    {{ form.player1_name(class="form-control") }}
+                    {% for error in form.player1_name.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="mb-3">
+                    {{ form.player2_name.label(class="form-label") }}
+                    {{ form.player2_name(class="form-control") }}
+                    {% for error in form.player2_name.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="mb-3">
+                    {{ form.match_format.label(class="form-label") }}
+                    {{ form.match_format(class="form-select") }}
+                    {% for error in form.match_format.errors %}
+                    <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                <div class="mb-3 form-check">
+                    {{ form.register_players(class="form-check-input") }}
+                    {{ form.register_players.label(class="form-check-label") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.submit(class="btn btn-primary") }}
+                    <a href="{{ url_for('table_tennis') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

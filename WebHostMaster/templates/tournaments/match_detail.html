@@ -1,0 +1,287 @@
+{% extends 'layout.html' %}
+
+{% block title %}Match Details{% endblock %}
+
+{% block styles %}
+<style>
+    .score-button {
+        font-size: 1.5rem;
+        width: 60px;
+        height: 60px;
+        margin: 0 10px;
+    }
+    
+    .score-display {
+        font-size: 3rem;
+        font-weight: bold;
+    }
+    
+    .set-indicator {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: inline-block;
+        margin: 0 5px;
+        background-color: var(--bs-secondary);
+    }
+    
+    .set-indicator.active {
+        background-color: var(--bs-primary);
+    }
+    
+    .set-indicator.won-p1 {
+        background-color: var(--bs-success);
+    }
+    
+    .set-indicator.won-p2 {
+        background-color: var(--bs-danger);
+    }
+    
+    .match-result {
+        display: none;
+    }
+    
+    .player-name {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Match: {{ match.player1.name }} vs {{ match.player2.name }}</h1>
+    
+    {% if match.tournament %}
+    <p>Tournament: <a href="{{ url_for('tournament_detail', tournament_id=match.tournament.id) }}">{{ match.tournament.name }}</a></p>
+    {% endif %}
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3>Match Details</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Format:</strong> Best of {{ match.match_format }}</p>
+                    <p><strong>Date:</strong> {{ match.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Status:</strong> {% if match.completed_at %}Completed{% else %}In Progress{% endif %}</p>
+                    {% if match.winner %}
+                    <p><strong>Winner:</strong> {{ match.winner.name }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if not match.completed_at %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>Current Set: {{ current_set.set_number }}</h3>
+                <div class="set-indicators">
+                    {% for i in range(1, match.match_format + 1) %}
+                        <span class="set-indicator" id="set-{{ i }}"></span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row text-center">
+                <div class="col-md-5">
+                    <div class="player-name mb-3">{{ match.player1.name }}</div>
+                    <div class="score-display" id="player1-score">{{ current_set.player1_score }}</div>
+                    <button class="btn btn-primary score-button mt-3" onclick="updateScore('player1')">+1</button>
+                </div>
+                <div class="col-md-2 d-flex align-items-center justify-content-center">
+                    <div class="fs-1">vs</div>
+                </div>
+                <div class="col-md-5">
+                    <div class="player-name mb-3">{{ match.player2.name }}</div>
+                    <div class="score-display" id="player2-score">{{ current_set.player2_score }}</div>
+                    <button class="btn btn-primary score-button mt-3" onclick="updateScore('player2')">+1</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3>Set History</h3>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Set</th>
+                        <th>{{ match.player1.name }}</th>
+                        <th>{{ match.player2.name }}</th>
+                        <th>Winner</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for set in match.sets %}
+                    <tr>
+                        <td>{{ set.set_number }}</td>
+                        <td>{{ set.player1_score }}</td>
+                        <td>{{ set.player2_score }}</td>
+                        <td>
+                            {% if set.winner %}
+                                {{ set.winner.name }}
+                            {% elif set.completed %}
+                                Completed (No winner)
+                            {% else %}
+                                In progress
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Match Result Modal -->
+    <div class="card mb-4 match-result" id="match-result">
+        <div class="card-header bg-success text-white">
+            <h3>Match Complete!</h3>
+        </div>
+        <div class="card-body">
+            <h2 class="text-center mb-4">Final Score</h2>
+            <div class="row text-center">
+                <div class="col-md-5">
+                    <div class="player-name">{{ match.player1.name }}</div>
+                    <div class="score-display" id="final-player1-sets">0</div>
+                </div>
+                <div class="col-md-2 d-flex align-items-center justify-content-center">
+                    <div class="fs-1">-</div>
+                </div>
+                <div class="col-md-5">
+                    <div class="player-name">{{ match.player2.name }}</div>
+                    <div class="score-display" id="final-player2-sets">0</div>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <h4>Winner: <span id="match-winner"></span></h4>
+                <div class="mt-4">
+                    <a href="{{ url_for('tournaments') }}" class="btn btn-primary">Return to Tournaments</a>
+                    <a href="{{ url_for('table_tennis') }}" class="btn btn-secondary">Return to Table Tennis</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Set match data for JavaScript
+    const matchId = {{ match.id }};
+    const matchFormat = {{ match.match_format }};
+    const p1Name = "{{ match.player1.name }}";
+    const p2Name = "{{ match.player2.name }}";
+    const setsToWin = {{ config.SETS_TO_WIN[match.match_format|string] }};
+    
+    // Initialize set indicators
+    function updateSetIndicators() {
+        {% for set in match.sets %}
+            {% if set.completed %}
+                {% if set.winner_id == match.player1_id %}
+                    document.getElementById("set-{{ set.set_number }}").classList.add("won-p1");
+                {% elif set.winner_id == match.player2_id %}
+                    document.getElementById("set-{{ set.set_number }}").classList.add("won-p2");
+                {% endif %}
+            {% elif set.set_number == current_set.set_number %}
+                document.getElementById("set-{{ set.set_number }}").classList.add("active");
+            {% endif %}
+        {% endfor %}
+    }
+    
+    // Check if match is completed
+    function checkMatchCompleted() {
+        {% if match.completed_at %}
+            showMatchSummary();
+        {% endif %}
+    }
+    
+    // Update score function
+    function updateScore(player) {
+        fetch(`/api/match/${matchId}/score`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ player: player }),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Update scores
+            document.getElementById('player1-score').textContent = data.player1_score;
+            document.getElementById('player2-score').textContent = data.player2_score;
+            
+            // Handle set completion
+            if (data.set_completed) {
+                // Update set indicators
+                updateSetIndicatorsFromData(data);
+                
+                // Show match result if match is completed
+                if (data.match_completed) {
+                    showMatchSummary(data.match_winner);
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error updating score:', error);
+            alert('Error updating score. Please try again.');
+        });
+    }
+    
+    // Update set indicators based on server data
+    function updateSetIndicatorsFromData(data) {
+        // Refresh the page to show updated state
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
+    }
+    
+    // Show match summary
+    function showMatchSummary() {
+        // Count sets won by each player
+        let player1Sets = 0;
+        let player2Sets = 0;
+        
+        {% for set in match.sets if set.completed %}
+            {% if set.winner_id == match.player1_id %}
+                player1Sets++;
+            {% elif set.winner_id == match.player2_id %}
+                player2Sets++;
+            {% endif %}
+        {% endfor %}
+        
+        // Update UI
+        document.getElementById('final-player1-sets').textContent = player1Sets;
+        document.getElementById('final-player2-sets').textContent = player2Sets;
+        
+        {% if match.winner %}
+            document.getElementById('match-winner').textContent = "{{ match.winner.name }}";
+        {% endif %}
+        
+        // Show match result section
+        document.getElementById('match-result').style.display = 'block';
+    }
+    
+    // Initialize UI
+    window.onload = function() {
+        updateSetIndicators();
+        checkMatchCompleted();
+    };
+</script>
+{% endblock %}

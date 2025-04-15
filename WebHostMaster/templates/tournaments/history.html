@@ -1,0 +1,270 @@
+{% extends "layout.html" %}
+
+{% block title %}Tournament History - College Tournament System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="mb-0">
+                <i class="fas fa-history me-2"></i>
+                Tournament History
+            </h1>
+        </div>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Tournament Types</h3>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush" id="history-tabs" role="tablist">
+                    <a class="list-group-item list-group-item-action active" id="table-tennis-tab" data-bs-toggle="list" href="#table-tennis" role="tab" aria-controls="table-tennis">
+                        <i class="fas fa-table-tennis-paddle-ball me-2"></i> Table Tennis
+                    </a>
+                    <a class="list-group-item list-group-item-action" id="football-tab" data-bs-toggle="list" href="#football" role="tab" aria-controls="football">
+                        <i class="fas fa-futbol me-2"></i> Football
+                    </a>
+                    <a class="list-group-item list-group-item-action" id="math-quiz-tab" data-bs-toggle="list" href="#math-quiz" role="tab" aria-controls="math-quiz">
+                        <i class="fas fa-calculator me-2"></i> Math Quiz
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h3 class="mb-0">Statistics</h3>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% set total_tournaments = history.TABLE_TENNIS|length + history.FOOTBALL|default([])|length + history.MATH_QUIZ|default([])|length %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Total Tournaments
+                        <span class="badge bg-primary rounded-pill">{{ total_tournaments }}</span>
+                    </li>
+                    
+                    {% set tt_matches = 0 %}
+                    {% for tournament in history.TABLE_TENNIS|default([]) %}
+                        {% set tt_matches = tt_matches + tournament.matches|length %}
+                    {% endfor %}
+                    
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Table Tennis Matches
+                        <span class="badge bg-primary rounded-pill">{{ tt_matches }}</span>
+                    </li>
+                    
+                    {% set fb_matches = 0 %}
+                    {% for tournament in history.FOOTBALL|default([]) %}
+                        {% set fb_matches = fb_matches + tournament.matches|length %}
+                    {% endfor %}
+                    
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Football Matches
+                        <span class="badge bg-primary rounded-pill">{{ fb_matches }}</span>
+                    </li>
+                    
+                    {% set mq_matches = 0 %}
+                    {% for tournament in history.MATH_QUIZ|default([]) %}
+                        {% set mq_matches = mq_matches + tournament.matches|length %}
+                    {% endfor %}
+                    
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Math Quiz Matches
+                        <span class="badge bg-primary rounded-pill">{{ mq_matches }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-9 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h2 class="mb-0">Match History</h2>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="history-tabs-content">
+                    <!-- Table Tennis History -->
+                    <div class="tab-pane fade show active" id="table-tennis" role="tabpanel" aria-labelledby="table-tennis-tab">
+                        {% if history.TABLE_TENNIS %}
+                            {% for tournament in history.TABLE_TENNIS %}
+                                <div class="card mb-4">
+                                    <div class="card-header bg-primary">
+                                        <h3 class="mb-0 text-white">{{ tournament.name }}</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if tournament.matches %}
+                                            <div class="history-timeline">
+                                                {% for match in tournament.matches %}
+                                                    <div class="history-item">
+                                                        <h4>{{ match.player1 }} vs {{ match.player2 }}</h4>
+                                                        <p class="text-muted">Winner: <span class="fw-bold">{{ match.winner }}</span></p>
+                                                        
+                                                        <div class="table-responsive mb-3">
+                                                            <table class="table table-sm table-bordered">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>Set</th>
+                                                                        <th>{{ match.player1 }}</th>
+                                                                        <th>{{ match.player2 }}</th>
+                                                                        <th>Winner</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {% for set in match.sets %}
+                                                                    <tr>
+                                                                        <td>{{ set.set_number }}</td>
+                                                                        <td>{{ set.player1_score }}</td>
+                                                                        <td>{{ set.player2_score }}</td>
+                                                                        <td>{{ set.winner }}</td>
+                                                                    </tr>
+                                                                    {% endfor %}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                        
+                                                        <div class="text-end">
+                                                            <a href="{{ url_for('match_detail', match_id=match.id) }}" class="btn btn-sm btn-outline-primary">
+                                                                View Match Details
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <div class="alert alert-info">
+                                                No matches found for this tournament.
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No Table Tennis tournament history available.
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Football History -->
+                    <div class="tab-pane fade" id="football" role="tabpanel" aria-labelledby="football-tab">
+                        {% if history.FOOTBALL %}
+                            {% for tournament in history.FOOTBALL %}
+                                <div class="card mb-4">
+                                    <div class="card-header bg-success">
+                                        <h3 class="mb-0 text-white">{{ tournament.name }}</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if tournament.matches %}
+                                            <div class="history-timeline">
+                                                {% for match in tournament.matches %}
+                                                    <div class="history-item">
+                                                        <h4>{{ match.player1 }} vs {{ match.player2 }}</h4>
+                                                        <p class="text-muted">
+                                                            {% if match.winner %}
+                                                                Winner: <span class="fw-bold">{{ match.winner }}</span>
+                                                            {% else %}
+                                                                Result: <span class="fw-bold">Draw</span>
+                                                            {% endif %}
+                                                        </p>
+                                                        
+                                                        <div class="text-end">
+                                                            <a href="{{ url_for('match_detail', match_id=match.id) }}" class="btn btn-sm btn-outline-success">
+                                                                View Match Details
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <div class="alert alert-info">
+                                                No matches found for this tournament.
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No Football tournament history available yet.
+                                <p class="mt-2">Football tournament functionality is coming soon!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Math Quiz History -->
+                    <div class="tab-pane fade" id="math-quiz" role="tabpanel" aria-labelledby="math-quiz-tab">
+                        {% if history.MATH_QUIZ %}
+                            {% for tournament in history.MATH_QUIZ %}
+                                <div class="card mb-4">
+                                    <div class="card-header bg-info">
+                                        <h3 class="mb-0 text-white">{{ tournament.name }}</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if tournament.matches %}
+                                            <div class="history-timeline">
+                                                {% for match in tournament.matches %}
+                                                    <div class="history-item">
+                                                        <h4>{{ match.player1 }} vs {{ match.player2 }}</h4>
+                                                        <p class="text-muted">Winner: <span class="fw-bold">{{ match.winner }}</span></p>
+                                                        
+                                                        <div class="table-responsive mb-3">
+                                                            <table class="table table-sm table-bordered">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>Round</th>
+                                                                        <th>{{ match.player1 }}</th>
+                                                                        <th>{{ match.player2 }}</th>
+                                                                        <th>Winner</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {% for set in match.sets %}
+                                                                    <tr>
+                                                                        <td>{{ set.set_number }}</td>
+                                                                        <td>{{ set.player1_score }}</td>
+                                                                        <td>{{ set.player2_score }}</td>
+                                                                        <td>{{ set.winner }}</td>
+                                                                    </tr>
+                                                                    {% endfor %}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                        
+                                                        <div class="text-end">
+                                                            <a href="{{ url_for('match_detail', match_id=match.id) }}" class="btn btn-sm btn-outline-info">
+                                                                View Match Details
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <div class="alert alert-info">
+                                                No matches found for this tournament.
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No Math Quiz tournament history available yet.
+                                <p class="mt-2">Math Quiz tournament functionality is coming soon!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

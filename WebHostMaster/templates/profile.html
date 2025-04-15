@@ -1,0 +1,172 @@
+{% extends "layout.html" %}
+
+{% block title %}Profile - College Tournament System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">User Profile</h3>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{ current_user.username }}</h5>
+                <p class="card-text">
+                    <i class="fas fa-envelope me-2"></i>{{ current_user.email }}
+                </p>
+                <p class="card-text">
+                    <i class="fas fa-calendar-alt me-2"></i>Joined: {{ current_user.created_at.strftime('%Y-%m-%d') }}
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">Your Players</h3>
+            </div>
+            <div class="card-body">
+                {% if player_records %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Created</th>
+                                <th>Matches Played</th>
+                                <th>Wins</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for player in player_records %}
+                            <tr>
+                                <td>{{ player.name }}</td>
+                                <td>{{ player.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ player.matches_as_player1|length + player.matches_as_player2|length }}</td>
+                                <td>{{ player.matches_as_player1|selectattr('winner_id', 'equalto', player.id)|list|length + player.matches_as_player2|selectattr('winner_id', 'equalto', player.id)|list|length }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-center">You haven't registered any players yet.</p>
+                <div class="text-center">
+                    <a href="{{ url_for('new_table_tennis_match') }}" class="btn btn-primary">Create a match with registered players</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h3 class="mb-0">Your Tournament Activity</h3>
+            </div>
+            <div class="card-body">
+                <ul class="nav nav-tabs" id="activityTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="matches-tab" data-bs-toggle="tab" data-bs-target="#matches" type="button" role="tab" aria-controls="matches" aria-selected="true">
+                            Recent Matches
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tournaments-tab" data-bs-toggle="tab" data-bs-target="#tournaments" type="button" role="tab" aria-controls="tournaments" aria-selected="false">
+                            Tournament Scores
+                        </button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="activityTabsContent">
+                    <div class="tab-pane fade show active p-3" id="matches" role="tabpanel" aria-labelledby="matches-tab">
+                        {% if player_records %}
+                            {% set matches = [] %}
+                            {% for player in player_records %}
+                                {% for match in player.matches_as_player1 %}
+                                    {% do matches.append(match) %}
+                                {% endfor %}
+                                {% for match in player.matches_as_player2 %}
+                                    {% do matches.append(match) %}
+                                {% endfor %}
+                            {% endfor %}
+                            
+                            {% if matches %}
+                                {% set unique_matches = matches|unique(attribute='id') %}
+                                {% set sorted_matches = unique_matches|sort(attribute='created_at', reverse=True) %}
+                                
+                                <div class="list-group">
+                                    {% for match in sorted_matches[:5] %}
+                                    <a href="{{ url_for('match_detail', match_id=match.id) }}" class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h5 class="mb-1">{{ match.player1.name }} vs {{ match.player2.name }}</h5>
+                                            <small>{{ match.created_at.strftime('%Y-%m-%d') }}</small>
+                                        </div>
+                                        <p class="mb-1">
+                                            {% if match.winner_id %}
+                                            Winner: <span class="fw-bold">{{ match.winner.name }}</span>
+                                            {% else %}
+                                            Status: <span class="text-warning">In Progress</span>
+                                            {% endif %}
+                                        </p>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-center">No match history found.</p>
+                            {% endif %}
+                        {% else %}
+                            <p class="text-center">No players registered to your account.</p>
+                        {% endif %}
+                    </div>
+                    <div class="tab-pane fade p-3" id="tournaments" role="tabpanel" aria-labelledby="tournaments-tab">
+                        {% if player_records %}
+                            {% set scores = [] %}
+                            {% for player in player_records %}
+                                {% for score in player.scores %}
+                                    {% do scores.append(score) %}
+                                {% endfor %}
+                            {% endfor %}
+                            
+                            {% if scores %}
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Tournament</th>
+                                                <th>Player</th>
+                                                <th>Score</th>
+                                                <th>Last Updated</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for score in scores|sort(attribute='score', reverse=True) %}
+                                            <tr>
+                                                <td>
+                                                    <a href="{{ url_for('tournament_detail', tournament_id=score.tournament.id) }}">
+                                                        {{ score.tournament.name }}
+                                                    </a>
+                                                </td>
+                                                <td>{{ score.player.name }}</td>
+                                                <td>{{ score.score }}</td>
+                                                <td>{{ score.last_updated.strftime('%Y-%m-%d') }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <p class="text-center">No tournament scores found.</p>
+                            {% endif %}
+                        {% else %}
+                            <p class="text-center">No players registered to your account.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

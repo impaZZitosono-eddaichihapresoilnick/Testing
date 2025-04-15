@@ -1,0 +1,122 @@
+{% extends "layout.html" %}
+
+{% block title %}Record Results for {{ event.name }} - College Tournament System{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('tournaments') }}">College Tournaments</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('events') }}">Events</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('event_detail', event_id=event.id) }}">{{ event.name }}</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Record Results</li>
+            </ol>
+        </nav>
+        <h1>
+            <i class="fas fa-clipboard-list me-2"></i>
+            Record Results for {{ event.name }}
+        </h1>
+        <hr>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">Results Entry</h2>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Event Format:</strong> {{ 'Team' if event.is_team_event else 'Individual' }} Event
+                    | <strong>Type:</strong> {{ event.event_type }}
+                </div>
+                
+                <form method="POST" action="{{ url_for('record_event_result', event_id=event.id) }}">
+                    {{ form.hidden_tag() }}
+                    {{ form.event_id }}
+                    
+                    {% if event.is_team_event %}
+                    <div class="mb-3">
+                        {{ form.team_id.label(class="form-label") }}
+                        {{ form.team_id(class="form-select") }}
+                        {% for error in form.team_id.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">Select the team whose results you are recording.</div>
+                    </div>
+                    {% else %}
+                    <div class="mb-3">
+                        {{ form.participant_id.label(class="form-label") }}
+                        {{ form.participant_id(class="form-select") }}
+                        {% for error in form.participant_id.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">Select the participant whose results you are recording.</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        {{ form.rank.label(class="form-label") }}
+                        {{ form.rank(class="form-control") }}
+                        {% for error in form.rank.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">Enter the final position/rank achieved (1 for first place, 2 for second, etc.)</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.score.label(class="form-label") }}
+                        {{ form.score(class="form-control") }}
+                        {% for error in form.score.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">Enter the raw score achieved (if applicable).</div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h3 class="mb-0">Points System</h3>
+            </div>
+            <div class="card-body">
+                <p>Points are awarded automatically based on ranking:</p>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Default points:</strong><br>
+                    1st: 10 pts | 2nd: 7 pts | 3rd: 5 pts<br>
+                    4th: 3 pts | 5th: 2 pts | 6th: 1 pt
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Important:</strong> Each rank (1st, 2nd, 3rd, etc.) can only be assigned once.
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">Current Results</h3>
+            </div>
+            <div class="card-body">
+                <a href="{{ url_for('event_detail', event_id=event.id) }}" class="btn btn-outline-success w-100">
+                    <i class="fas fa-eye me-2"></i>
+                    View Event Results
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
